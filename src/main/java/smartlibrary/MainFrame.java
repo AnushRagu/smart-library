@@ -62,12 +62,39 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel dashboardPanel() {
-        JPanel p=new JPanel(new BorderLayout(16,16));p.setBorder(new EmptyBorder(26,28,28,28));p.setBackground(PAPER);
-        JPanel cards=new JPanel(new GridLayout(1,5,12,12));cards.setOpaque(false);
-        for(int i=0;i<stats.length;i++) { JPanel card=new JPanel(new BorderLayout(4,9));card.setBackground(Color.WHITE);card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(RULE),new EmptyBorder(19,17,19,17)));stats[i]=new JLabel("—");stats[i].setForeground(WINE);stats[i].setFont(new Font("Serif",Font.BOLD,30));JLabel label=new JLabel(statNames[i]);label.setForeground(MUTED);label.setFont(new Font("SansSerif",Font.PLAIN,12));card.add(stats[i],BorderLayout.CENTER);card.add(label,BorderLayout.SOUTH);cards.add(card); }
-        p.add(cards,BorderLayout.NORTH);
-        JTextArea note=new JTextArea("Welcome to the Smart Library Management System.\n\nUse Books to find and maintain the catalogue, Members to register borrowers, and Loans & Reports to issue, return, and review loans. Overdue status updates automatically from the current database date. Late fine: ₹5 per day.");
-        note.setEditable(false);note.setLineWrap(true);note.setWrapStyleWord(true);note.setForeground(INK);note.setFont(new Font("SansSerif",Font.PLAIN,16));note.setBackground(Color.WHITE);note.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(RULE),new EmptyBorder(28,28,28,28)));p.add(note,BorderLayout.CENTER);return p;
+        JPanel p=new JPanel(new BorderLayout(18,18));p.setBorder(new EmptyBorder(26,28,28,28));p.setBackground(PAPER);
+        JPanel heading=new JPanel(new BorderLayout(4,5));heading.setOpaque(false);
+        JLabel title=new JLabel("Library at a glance");title.setForeground(INK);title.setFont(new Font("Serif",Font.BOLD,27));
+        JLabel subtitle=new JLabel("A current view of the catalogue, members, and circulation.");subtitle.setForeground(MUTED);subtitle.setFont(new Font("SansSerif",Font.PLAIN,14));
+        heading.add(title,BorderLayout.NORTH);heading.add(subtitle,BorderLayout.SOUTH);p.add(heading,BorderLayout.NORTH);
+
+        JPanel content=new JPanel(new BorderLayout(17,18));content.setOpaque(false);
+        JPanel cards=new JPanel(new GridLayout(1,5,13,13));cards.setOpaque(false);
+        for(int i=0;i<stats.length;i++) {
+            JPanel card=new JPanel(new BorderLayout(4,8));card.setBackground(Color.WHITE);
+            card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(RULE),new EmptyBorder(0,16,16,16)));
+            JPanel accent=new JPanel();accent.setBackground(i==4?WINE_LIGHT:WINE);accent.setPreferredSize(new Dimension(1,4));card.add(accent,BorderLayout.NORTH);
+            stats[i]=new JLabel("—");stats[i].setForeground(i==4?WINE_LIGHT:WINE);stats[i].setFont(new Font("Serif",Font.BOLD,29));
+            JLabel label=new JLabel(statNames[i]);label.setForeground(MUTED);label.setFont(new Font("SansSerif",Font.PLAIN,12));
+            card.add(stats[i],BorderLayout.CENTER);card.add(label,BorderLayout.SOUTH);cards.add(card);
+        }
+        content.add(cards,BorderLayout.NORTH);
+
+        JPanel information=new JPanel(new GridLayout(1,2,16,16));information.setOpaque(false);
+        information.add(dashboardInfoCard("LIBRARY WORKFLOW",
+                "Use Books to maintain and search the catalogue, Members to register borrowers, and Loans & Reports to issue, return, and review loans."));
+        information.add(dashboardInfoCard("LOAN GUIDELINES",
+                "Each loan lasts 14 days. Overdue status updates from the current database date, with a late fine of ₹5 per day."));
+        content.add(information,BorderLayout.CENTER);p.add(content,BorderLayout.CENTER);return p;
+    }
+
+    private JPanel dashboardInfoCard(String eyebrow,String text) {
+        JPanel card=new JPanel(new BorderLayout(8,12));card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(RULE),new EmptyBorder(18,20,20,20)));
+        JLabel label=new JLabel(eyebrow);label.setForeground(WINE);label.setFont(new Font("SansSerif",Font.BOLD,11));
+        JTextArea body=new JTextArea(text);body.setEditable(false);body.setFocusable(false);body.setLineWrap(true);body.setWrapStyleWord(true);
+        body.setForeground(INK);body.setFont(new Font("SansSerif",Font.PLAIN,14));body.setBackground(Color.WHITE);body.setBorder(null);
+        card.add(label,BorderLayout.NORTH);card.add(body,BorderLayout.CENTER);return card;
     }
 
     private JPanel booksPanel() {
@@ -134,10 +161,26 @@ public class MainFrame extends JFrame {
     }
     private int authorIdForBook(String id)throws SQLException{for(Object[] b:repo.getBooks("", "All genres")){if(b[0].toString().equals(id))for(Object[] a:repo.getAuthors())if((a[1]+" · "+a[2]).equals(b[2]))return Integer.parseInt(a[0].toString());}return -1;}
     private void editMember(Object[] row){
-        JTextField name=new JTextField(row==null?"":String.valueOf(row[1]));JTextField city=new JTextField(row==null?"":String.valueOf(row[2]));JTextField date=new JTextField(row==null?LocalDate.now().toString():String.valueOf(row[3]));JTextField email=new JTextField(row==null||row[4]==null?"":String.valueOf(row[4]));
-        Object[] fields={"Name",name,"City",city,"Join date (YYYY-MM-DD)",date,"Email (optional)",email};
-        if(JOptionPane.showConfirmDialog(this,fields,row==null?"Register Member":"Edit Member",JOptionPane.OK_CANCEL_OPTION)==JOptionPane.OK_OPTION)try{service.saveMember(row==null?null:Integer.valueOf(row[0].toString()),name.getText(),city.getText(),LocalDate.parse(date.getText().trim()),email.getText());refreshMembers();refreshStats();}catch(Exception ex){showError(ex);}
+        JTextField name=new JTextField(row==null?"":String.valueOf(row[1]),22);
+        JTextField city=new JTextField(row==null?"":String.valueOf(row[2]),22);
+        JTextField date=new JTextField(row==null?LocalDate.now().toString():String.valueOf(row[3]),22);
+        JTextField email=new JTextField(row==null||row[4]==null?"":String.valueOf(row[4]),22);
+        date.setToolTipText("Enter a date in YYYY-MM-DD format");
+        JPanel form=new JPanel(new GridLayout(0,2,12,12));form.setBackground(PAPER);form.setBorder(new EmptyBorder(12,12,12,12));
+        form.add(formLabel("Member name"));form.add(name);
+        form.add(formLabel("City"));form.add(city);
+        form.add(formLabel("Join date (YYYY-MM-DD)"));form.add(date);
+        form.add(formLabel("Email (optional)"));form.add(email);
+        int result=JOptionPane.showConfirmDialog(this,form,row==null?"Register Member":"Edit Member",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+        if(result!=JOptionPane.OK_OPTION)return;
+        try {
+            service.saveMember(row==null?null:Integer.valueOf(row[0].toString()),name.getText(),city.getText(),LocalDate.parse(date.getText().trim()),email.getText());
+            refreshMembers();refreshStats();
+            JOptionPane.showMessageDialog(this,row==null?"Member registered successfully.":"Member details updated.","Library System",JOptionPane.INFORMATION_MESSAGE);
+        } catch(Exception ex) { showError(ex); }
     }
+
+    private JLabel formLabel(String text){JLabel label=new JLabel(text);label.setForeground(INK);label.setFont(new Font("SansSerif",Font.PLAIN,13));return label;}
 
     private void deleteSelected(JTable table,String entity){Object[] row=selectedRow(table);if(row==null)return;if(JOptionPane.showConfirmDialog(this,"Delete this "+entity+"? Records already referenced by loans or books cannot be deleted.","Confirm delete",JOptionPane.YES_NO_OPTION)!=JOptionPane.YES_OPTION)return;try{int id=Integer.parseInt(row[0].toString());if("author".equals(entity))repo.deleteAuthor(id);else if("book".equals(entity))repo.deleteBook(id);else repo.deleteMember(id);refreshAll();}catch(Exception ex){showError(ex);}}
 

@@ -36,6 +36,7 @@
 ./src/main/java/smartlibrary/Main.java
 ./src/main/java/smartlibrary/MainFrame.java
 ./work
+./work/.DS_Store
 ./work/SmartLibrary.jar
 ./work/deps
 ./work/deps/mysql-connector-j-9.5.0.jar
