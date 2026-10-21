@@ -21,6 +21,7 @@
 ./outputs/SmartLibraryManagementSystem.zip
 ./run.sh
 ./sql
+./sql/add_sample_data.sql
 ./sql/scenario_queries.sql
 ./sql/schema_seed.sql
 ./src

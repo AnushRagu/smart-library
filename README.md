@@ -23,8 +23,17 @@ No Maven, web server, framework, Python, or external service is used.
 ## Set up the database
 
 1. Start MySQL.
-2. Run `sql/schema_seed.sql` using MySQL Workbench or the MySQL command line. It creates `library_db` and imports the exact authors, books, members, and sample loans from Scenario 3. The script resets the four project tables when rerun, so back up any library data you want to keep first. Open seeded loans will show as overdue relative to today's date; that is intentional so the overdue screen can be demonstrated immediately.
-3. Create a MySQL user for the app or use your local account. The app defaults to `localhost:3306`, database `library_db`, user `root`, and a blank password. Set environment variables to override these:
+2. Run `sql/schema_seed.sql` using MySQL Workbench or the MySQL command line. It creates `library_db` and imports the original Scenario 3 records. The script resets the four project tables when rerun, so back up any library data you want to keep first.
+3. Run `sql/add_sample_data.sql` after the schema seed to add a larger demo catalogue and circulation history. It adds 15 authors, 42 books, 45 members, and 190 loans, bringing the seeded database to 20 authors, 50 book titles, 50 members, and 200 loans. It is additive and can be run again without duplicating its fixed sample IDs. Supplemental loan dates are generated relative to the database's current date; the original Scenario 3 rows remain unchanged.
+
+```sh
+mysql -u root -p < sql/schema_seed.sql
+mysql -u root -p < sql/add_sample_data.sql
+```
+
+If using MySQL Workbench, run both SQL files in that order. The seed file is destructive; the sample-data file is additive.
+
+4. Create a MySQL user for the app or use your local account. The app defaults to `localhost:3306`, database `library_db`, user `root`, and a blank password. Set environment variables to override these:
 
    - `LIBRARY_DB_URL` (default `jdbc:mysql://localhost:3306/library_db?serverTimezone=UTC`)
    - `LIBRARY_DB_USER` (default `root`)
@@ -78,13 +87,14 @@ The UI opens only after it can connect to MySQL. If connection fails, check that
 4. Return it. Show the loan in History and the copy count increase. If the due date has passed, show the calculated fine.
 5. Open Overdue Loans and explain that the date comparison is calculated from the database's current date.
 
-The sample data has a fixed 2026-09 timeline from the supplied answer key, so four unreturned loans are overdue when first run on 2026-10-21. This makes the overdue feature visible without changing the assignment records.
+The original Scenario 3 records retain their fixed 2026-09 timeline. The expansion script adds dated loans relative to `CURDATE()` so active and overdue examples remain visible when the demo database is initialized later.
 
 ## Project layout
 
 ```text
 src/main/java/smartlibrary/   Java application
 sql/schema_seed.sql           Schema and Scenario 3 sample data
+sql/add_sample_data.sql       Additional demo catalogue and loan history
 sql/scenario_queries.sql      Assignment queries Q1–Q15
 run.sh                        Compile and launch on macOS/Linux
 DEMO_VIVA_GUIDE.md            Short demo script and OOP/DBMS viva notes

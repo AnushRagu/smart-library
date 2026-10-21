@@ -3,11 +3,12 @@
 ## Before the demo
 
 1. Start MySQL and confirm the `library_db` database is available.
-2. If you want the original demonstration records, import `sql/schema_seed.sql`. **This resets the four project tables**, so do not rerun it when you need to preserve live library data.
-3. Set `LIBRARY_DB_USER` and `LIBRARY_DB_PASSWORD` if your local MySQL credentials differ from the defaults.
-4. From the project folder, run `./run.sh`. The app compiles its Java source and opens the Swing window.
+2. Import `sql/schema_seed.sql`. **This resets the four project tables**, so do not rerun it when you need to preserve live library data.
+3. Import `sql/add_sample_data.sql` to add the expanded demo set without resetting the base scenario.
+4. Set `LIBRARY_DB_USER` and `LIBRARY_DB_PASSWORD` if your local MySQL credentials differ from the defaults.
+5. From the project folder, run `./run.sh`. The app compiles its Java source and opens the Swing window.
 
-The supplied data contains 5 authors, 8 titles, 5 members, and 10 loan records. Four loans are open and overdue relative to the seed dates in the supplied scenario. Counts can differ after you make changes in a live database.
+After both SQL files are imported, the demo database contains 20 authors, 50 titles, 50 members, and 200 loan records. It includes returned loans, active loans, overdue loans, and currently available copies. Counts can differ after changes in a live database.
 
 ## Suggested demonstration (about 5 minutes)
 
