@@ -26,6 +26,7 @@ public class MainFrame extends JFrame {
     private JComboBox<String> genreFilter;
     private JComboBox<String> loanView;
     private boolean updatingFilters;
+    private JButton headerRefreshButton;
     private final String[] statNames={"Book titles","Copies available","Members","Active loans","Overdue"};
 
     public MainFrame(LibraryService service) {
@@ -58,7 +59,9 @@ public class MainFrame extends JFrame {
         JLabel title=new JLabel("SMART LIBRARY");title.setForeground(new Color(255,248,244));title.setFont(new Font("Serif",Font.BOLD,24));
         JLabel subtitle=new JLabel("Management System  ·  Java + MySQL");subtitle.setForeground(new Color(229,201,207));subtitle.setFont(new Font("SansSerif",Font.PLAIN,13));
         JPanel labels=new JPanel(new GridLayout(2,1));labels.setOpaque(false);labels.add(title);labels.add(subtitle);p.add(labels,BorderLayout.WEST);
-        JButton refresh=new JButton("Refresh");styleButton(refresh,true);refresh.addActionListener(e->{try{refreshAll();}catch(Exception ex){showError(ex);}});p.add(refresh,BorderLayout.EAST);return p;
+        headerRefreshButton=new JButton("Refresh");styleButton(headerRefreshButton,true);
+        headerRefreshButton.setToolTipText("Reload dashboard, catalogue, members, authors, and loan reports from MySQL");
+        headerRefreshButton.addActionListener(e->refreshAllInBackground());p.add(headerRefreshButton,BorderLayout.EAST);return p;
     }
 
     private JPanel dashboardPanel() {
@@ -132,6 +135,68 @@ public class MainFrame extends JFrame {
         switch(tabs.getSelectedIndex()){case 0:refreshStats();break;case 1:refreshBooks();break;case 2:refreshAuthors();break;case 3:refreshMembers();break;case 4:refreshLoans();break;default:break;}
     }
     private void refreshAll() throws SQLException {refreshStats();refreshAuthors();refreshBooks();refreshMembers();refreshLoans();}
+
+    /** Load every view off the Swing event thread so Refresh remains responsive during JDBC calls. */
+    private void refreshAllInBackground() {
+        if (headerRefreshButton.isEnabled()) {
+            headerRefreshButton.setEnabled(false);
+            headerRefreshButton.setText("Refreshing…");
+        } else {
+            return;
+        }
+        final String search = searchField == null ? "" : searchField.getText();
+        final String selectedGenre = genreFilter == null ? "All genres" : (String) genreFilter.getSelectedItem();
+        final String selectedLoanView = loanView == null ? "Active Loans" : (String) loanView.getSelectedItem();
+        new SwingWorker<RefreshSnapshot, Void>() {
+            @Override protected RefreshSnapshot doInBackground() throws Exception {
+                RefreshSnapshot snapshot = new RefreshSnapshot();
+                snapshot.stats = repo.getDashboardStats();
+                snapshot.authors = repo.getAuthors();
+                snapshot.genres = repo.getGenres();
+                snapshot.books = repo.getBooks(search, selectedGenre);
+                snapshot.members = repo.getMembers();
+                snapshot.loans = repo.getLoans(selectedLoanView);
+                return snapshot;
+            }
+
+            @Override protected void done() {
+                try {
+                    RefreshSnapshot snapshot = get();
+                    for (int i = 0; i < stats.length; i++) stats[i].setText(String.valueOf(snapshot.stats[i]));
+                    setTable(authorsTable, new String[]{"ID", "Name", "Country"}, snapshot.authors);
+                    if (genreFilter != null) {
+                        updatingFilters = true;
+                        try {
+                            genreFilter.removeAllItems();
+                            genreFilter.addItem("All genres");
+                            for (String genre : snapshot.genres) genreFilter.addItem(genre);
+                            genreFilter.setSelectedItem(snapshot.genres.contains(selectedGenre) ? selectedGenre : "All genres");
+                        } finally {
+                            updatingFilters = false;
+                        }
+                    }
+                    setTable(booksTable, new String[]{"ID", "Title", "Author", "Genre", "Total Copies", "Available"}, snapshot.books);
+                    setTable(membersTable, new String[]{"ID", "Name", "City", "Join Date", "Email"}, snapshot.members);
+                    setTable(loansTable, new String[]{"Loan ID", "Member", "Book", "Issue Date", "Due Date", "Return Date", "Fine (₹)"}, snapshot.loans);
+                } catch (Exception ex) {
+                    Throwable cause = ex.getCause();
+                    showError(cause instanceof Exception ? (Exception) cause : ex);
+                } finally {
+                    headerRefreshButton.setText("Refresh");
+                    headerRefreshButton.setEnabled(true);
+                }
+            }
+        }.execute();
+    }
+
+    private static final class RefreshSnapshot {
+        int[] stats;
+        List<Object[]> authors;
+        List<String> genres;
+        List<Object[]> books;
+        List<Object[]> members;
+        List<Object[]> loans;
+    }
     private void refreshStats() throws SQLException {int[] v=repo.getDashboardStats();for(int i=0;i<v.length;i++)stats[i].setText(String.valueOf(v[i]));}
     private void refreshAuthors() throws SQLException {setTable(authorsTable,new String[]{"ID","Name","Country"},repo.getAuthors());}
     private void refreshBooks() throws SQLException {
