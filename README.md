@@ -89,3 +89,5 @@ sql/scenario_queries.sql      Assignment queries Q1–Q15
 run.sh                        Compile and launch on macOS/Linux
 ```
 # smart-library
+# smart-library
+# smart-library

@@ -1,0 +1,5 @@
+out/
+/work/
+*.class
+*.jar
+.DS_Store
