@@ -1,6 +1,7 @@
 .
 ./.DS_Store
 ./.gitignore
+./DEMO_VIVA_GUIDE.md
 ./README.md
 ./lib
 ./lib/mysql-connector-j-9.5.0.jar

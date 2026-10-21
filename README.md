@@ -87,6 +87,7 @@ src/main/java/smartlibrary/   Java application
 sql/schema_seed.sql           Schema and Scenario 3 sample data
 sql/scenario_queries.sql      Assignment queries Q1–Q15
 run.sh                        Compile and launch on macOS/Linux
+DEMO_VIVA_GUIDE.md            Short demo script and OOP/DBMS viva notes
 ```
 # smart-library
 # smart-library
